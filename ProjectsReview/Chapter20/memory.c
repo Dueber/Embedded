@@ -39,6 +39,8 @@ int main(void) {
 
     printf("\n");
     ptr += 10;
+    // Not sure what happens here 
+    
     }
     return 0;
 }   
