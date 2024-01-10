@@ -2,7 +2,7 @@
  * FirstProject.c
  *
  * Created: 1/8/2024 10:42:19 AM
- * Author : Chris
+ * Author : Christopher Dueber
  */ 
 
 #define F_CPU 16000000
