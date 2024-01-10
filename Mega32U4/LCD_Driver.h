@@ -2,7 +2,7 @@
  * LCD_Driver.h
  *
  * Created: 1/9/2024 12:36:51 PM
- *  Author: cbdue
+ *  Author: Christopher Dueber
  */ 
 
 
