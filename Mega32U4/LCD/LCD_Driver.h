@@ -2,7 +2,7 @@
  * LCD_Driver.h
  *
  * Created: 1/9/2024 12:36:51 PM
- *  Author: Christopher Dueber
+ *  Author: cbdue
  */ 
 
 
@@ -37,7 +37,7 @@
 
 
 // Declarations
-void LCD_Internal_WriteLn(uint8_t* FontBitmap, uint8_t r17);
+void LCD_Internal_WriteLn(uint8_t* FontBitmap, uint8_t r17, uint8_t r24, uint8_t r25);
 void LCD_Internal_WriteCMD(uint8_t mpr);
 void LCDDelay();
 unsigned char BitmapFont[256][16];
@@ -150,19 +150,36 @@ void Bin2ASCII(uint8_t mpr, char* result) {
 
 // Rewrite Function using datasheet
 
-void LCD_Internal_WriteLn(uint8_t* FontBitmap, uint8_t r17) {
+void LCD_Internal_WriteLn(uint8_t* FontBitmap, uint8_t r17, uint8_t r24, uint8_t r25) {
 	
 	uint8_t mpr;
+	//uint8_t charLine = 16;
+	//uint8_t lowBitmap, highBitmap;
+	
+	//highBitmap = highbyte(FontBitmap << 1);
+	//lowBitmap = lowbyte(FontBitmap << 1);
 	
 	// activate slave select
 	PORTB &= ~(1 << PB0);
 	
+	
+	// Setup LCD column
 	mpr = lcd_c_disp_set_col_addr_h;
 	LCD_Internal_WriteCMD(mpr);
 	mpr = lcd_c_disp_set_col_addr_l;
+	
+	// Page address
 	LCD_Internal_WriteCMD(mpr);
+	
+	// Set the lower 4 bits
 	mpr = lcd_c_disp_set_page_addr;
-	mpr ^= r17;							// set the lower 4 bits
+	mpr ^= r17;							
+	LCD_Internal_WriteCMD(mpr);
+	
+	// Get character from bitmap
+	
+	
+	
 	
 	
 }
