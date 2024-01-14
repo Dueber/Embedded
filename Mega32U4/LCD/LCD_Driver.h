@@ -1,8 +1,8 @@
 /*
  * LCD_Driver.h
  *
- * Created: 1/9/2024 12:36:51 PM
- *  Author: cbdue
+ * Created: 1/8/2024 12:36:51 PM
+ *  Author: Christopher Dueber
  */ 
 
 
@@ -15,21 +15,22 @@
 
 #define lcd_buffer_addr 0x0100
 
-#define lcd_c_disp_en 0b10101110 
-#define lcd_c_disp_set_start_ln 0b01000000
-#define lcd_c_disp_set_page_addr 0b10110000
-#define lcd_c_disp_set_col_addr_h 0b00010000
+
+#define lcd_c_disp_en 0b10101110						// Display ON/OFF
+#define lcd_c_disp_set_start_ln 0b01000000					// Display Start Line Set
+#define lcd_c_disp_set_page_addr 0b10110000					// Page Address Set
+#define lcd_c_disp_set_col_addr_h 0b00010000					// Column Address Set, see column address circuit for details
 #define lcd_c_disp_set_col_addr_l 0b00000000
-#define lcd_c_disp_set_invert 0b10100110
-#define lcd_c_disp_fill 0b10100100
-#define lcd_c_disp_reset 0b11100010
-#define lcd_c_disp_set_bias 0xA2
-#define lcd_c_disp_set_scandir 0b11000000
-#define lcd_c_disp_set_contrast_1 0b10000001
-#define lcd_c_disp_set_contrast_2 15
-#define lcd_c_disp_set_res_ratio 0x22
-#define lcd_c_disp_vreg_on 0x2F
-#define lcd_c_disp_write 0b00000000
+#define lcd_c_disp_set_invert 0b10100110					// Display Normal/Reverse
+#define lcd_c_disp_fill 0b10100100						// Display All Points ON/OFF, normal (OFF)
+#define lcd_c_disp_reset 0b11100010						// Resets LCD settings
+#define lcd_c_disp_set_bias 0b10100010						// LCD Bias Set, voltage bias ratio
+#define lcd_c_disp_set_scandir 0b11000000					// 
+#define lcd_c_disp_set_contrast_1 0b10000001					// Electronic Volume Mode Set
+#define lcd_c_disp_set_contrast_2 0b00001111					// Electronic Volume Register
+#define lcd_c_disp_set_res_ratio 0x22						// 
+#define lcd_c_disp_vreg_on 0x2F							// Target: 3.3V
+#define lcd_c_disp_write 0b00000000						// Display Data Write
 
 #define SPCR_REG (*((volatile unsigned char *)(0x2D)))
 #define SPSR_REG (*((volatile unsigned char *)(0x2E)))
