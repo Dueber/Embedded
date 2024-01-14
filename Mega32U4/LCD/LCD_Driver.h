@@ -15,7 +15,7 @@
 
 #define lcd_buffer_addr 0x0100
 
-#define lcd_c_disp_en 0b10101110
+#define lcd_c_disp_en 0b10101110 
 #define lcd_c_disp_set_start_ln 0b01000000
 #define lcd_c_disp_set_page_addr 0b10110000
 #define lcd_c_disp_set_col_addr_h 0b00010000
@@ -48,22 +48,35 @@ void LCDInit() {
 
 	// set MOSI, SCL, and SS as outputs
 	DDRB |= (1 << DDB2) | (1 << DDB1) | (1 << DDB0);
-	// ensure that SS is deactivated (active low)
-	PORTB &= ~(1 << PB0);
+
 	// set lcd_A0 as output
 	DDRF |= (1 << DDF1);
+	
 	// enable LCD backlight control
 	DDRC |= (1 << DDC7);
+	
 	// set lcd_RST_N as output
 	DDRF |= (1 << DDF0);
+	
 	// pull lcd_RST_N low for 1 millisecond
 	PORTF &= ~(1 << PF0);
 	LCDDelay();
 	PORTF |= (1 << PF0);
 
-	// Enable SPI mode 3, master configuration, set clock rate fck/2 using SPI2X
-	SPCR_REG = (1 << SPE) | (1 << MSTR) | (1 << CPOL) | (1 << CPHA);
-	SPSR_REG = (1 << SPI2X);
+	// SPCR Setup: SPI Control Register
+	// SPIE: Enable SPI interrupt vector
+	// SPE: SPI Enable
+	// MSTR: Master SPI mode
+	// CPOL: Idle CLK = 1, Falling -> Rising
+	// CPHA: Setup -> Sample data
+	
+	SPCR_REG = (1 << SPIE) | (1 << SPE) | (1 << MSTR) | (1 << CPOL) | (1 << CPHA);
+	
+	// SPSR Setup: SPI Status Register
+	// SPI2X: CLK freq. is doubled, see clock speed reference
+	// SPIF: SPI Interrupt Vector flag
+	
+	SPSR_REG = (1 << SPIF) | (1 << SPI2X);
 
 	// activate slave select
 	PORTB &= ~(1 << PB0);
@@ -102,13 +115,9 @@ void LCDWrite(char* data) {
 	// Write to LCD code
 }
 
-void LCDWrLn1(uint8_t* FontBitmap) {
+void LCDWrLn1(uint8_t (*FontBitmap)[16]) {
 
-	// Set the destination bank in LCD RAM (TOP)
 
-	// Point at the ASCII data
-
-	// Call LCD_Internal_WriteLn
 
 }
 
@@ -142,97 +151,35 @@ void Bin2ASCII(uint8_t mpr, char* result) {
 // Rewrite Function using datasheet
 
 void LCD_Internal_WriteLn(uint8_t* FontBitmap, uint8_t r17) {
-	uint8_t mpr;
-	uint8_t r18, r19;
-	uint16_t baseAddress;
-	uint8_t charOffset;
-	uint8_t columns;
-
-	baseAddress = ((uint16_t)(FontBitmap[0] << 1));
 	
-	PORTB &= ~(1 << 0); // Activate slave select
-
-	r18 = 2; // Counter for rows
-	r19 = 16; // Counter for columns
-
-	// Display loop
-	while (r18 > 0) {
-		// Set column to 0
-		mpr = lcd_c_disp_set_col_addr_h;
-		LCD_Internal_WriteCMD(mpr);
-
-		mpr = lcd_c_disp_set_col_addr_l;
-		LCD_Internal_WriteCMD(mpr);
-
-		// Set the page address
-		mpr = lcd_c_disp_set_page_addr | r17;
-		LCD_Internal_WriteCMD(mpr);
-
-		columns = 8; // Number of columns for each character
-
-		// Character loop
-		while (r19 > 0) {
-			for (int row = 0; row < 256; row++) {
-			// Iterate through columns
-				for (int col = 0; col < 16; col++) {
-				uint8_t asciiCode = BitmapFont[row][col];
-				charOffset = asciiCode * 16; // 16 bytes per character
-				}
-			}
-			
-			// Display chunk loop
-			while (columns > 0) {
-				uint8_t data = pgm_read_byte_near(baseAddress + charOffset);
-				LCD_Internal_WriteCMD(data);
-
-				// Move to the next column
-				baseAddress += 2;
-				columns--;
-
-				// Wait for SPI to finish
-				while (!(SPSR & (1 << SPIF))) {}
-			}
-
-			// Move to the next character
-			r19--;
-
-			// Check for the end of the line
-			if (r19 == 0) {
-				r18--;
-
-				if (r18 == 0) {
-					break; // All chunks displayed
-				}
-
-				r17--;
-				uint8_t (*BitmapFontPointer)[16];  // Declare a pointer to the array
-
-				// Set the pointer to the beginning of the array
-				BitmapFontPointer = BitmapFont;
-
-				// Move the pointer back by 16 elements (screen width)
-				BitmapFontPointer -= 16;
-				baseAddress += 1; // Increment the base address pointer
-			}
-		}
-	}
+	uint8_t mpr;
+	
+	// activate slave select
+	PORTB &= ~(1 << PB0);
+	
+	mpr = lcd_c_disp_set_col_addr_h;
+	LCD_Internal_WriteCMD(mpr);
+	mpr = lcd_c_disp_set_col_addr_l;
+	LCD_Internal_WriteCMD(mpr);
+	mpr = lcd_c_disp_set_page_addr;
+	mpr ^= r17;							// set the lower 4 bits
+	
+	
 }
 
 void LCD_Internal_ClearLn(uint8_t r17) {
+	
 	// Internal clear LCD code
+	
 }
 
+
 void LCD_Internal_WriteCMD(uint8_t mpr) {
-	/*
-	SPDR = mpr;               // Initiate transmission
-	PORTF &= ~(1 << 1);       // Clear lcd_A0 to put the lcd into command mode
 
-	// Wait for SPI to finish
-	while (!(SPSR & (1 << SPIF))) {}
-
-	// Return from the function
-	return;
-	*/
+	SPDR_REG = mpr;
+	
+	PORTF &= ~(1 << PF1);
+	while (!(SPSR_REG & (1 << SPIF)));	
 }
 
 
