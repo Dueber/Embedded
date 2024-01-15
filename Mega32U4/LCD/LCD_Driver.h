@@ -15,22 +15,24 @@
 
 #define lcd_buffer_addr 0x0100
 
+															// LCD Commands
 
-#define lcd_c_disp_en 0b10101110						// Display ON/OFF
+#define lcd_c_disp_en 0b10101110							// Display ON/OFF
 #define lcd_c_disp_set_start_ln 0b01000000					// Display Start Line Set
 #define lcd_c_disp_set_page_addr 0b10110000					// Page Address Set
-#define lcd_c_disp_set_col_addr_h 0b00010000					// Column Address Set, see column address circuit for details
+#define lcd_c_disp_set_col_addr_h 0b00010000				// Column Address Set, see column address circuit for details
 #define lcd_c_disp_set_col_addr_l 0b00000000
 #define lcd_c_disp_set_invert 0b10100110					// Display Normal/Reverse
-#define lcd_c_disp_fill 0b10100100						// Display All Points ON/OFF, normal (OFF)
-#define lcd_c_disp_reset 0b11100010						// Resets LCD settings
-#define lcd_c_disp_set_bias 0b10100010						// LCD Bias Set, voltage bias ratio
-#define lcd_c_disp_set_scandir 0b11000000					// 
-#define lcd_c_disp_set_contrast_1 0b10000001					// Electronic Volume Mode Set
-#define lcd_c_disp_set_contrast_2 0b00001111					// Electronic Volume Register
-#define lcd_c_disp_set_res_ratio 0x22						// 
-#define lcd_c_disp_vreg_on 0x2F							// Target: 3.3V
-#define lcd_c_disp_write 0b00000000						// Display Data Write
+#define lcd_c_disp_fill 0b10100100							// Display All Points ON/OFF, normal (OFF)
+#define lcd_c_disp_reset 0b11100010							// Resets LCD settings
+#define lcd_c_disp_set_bias 0b10100010						// LCD Bias Set, voltage bias ratio (1/6 bias, 1/33 duty)
+#define lcd_c_disp_set_scandir 0b10100000					// Segment Driver direction
+#define lcd_c_disp_set_contrast_1 0b10000001				// Electronic Volume Mode Set
+#define lcd_c_disp_set_contrast_2 0b00001111				// Electronic Volume Register (table 10)
+#define lcd_c_disp_set_res_ratio 0x22						// Resistor ratio for voltage regulator
+															 
+#define lcd_c_disp_vreg_on 0b00000111						// Voltage booster, voltage regulator, voltage follower
+#define lcd_c_disp_write 0b00000000							// Display Data Write
 
 #define SPCR_REG (*((volatile unsigned char *)(0x2D)))
 #define SPSR_REG (*((volatile unsigned char *)(0x2E)))
@@ -172,8 +174,8 @@ void LCD_Internal_WriteLn(uint8_t* FontBitmap, uint8_t r17, uint8_t r24, uint8_t
 	// Page address
 	LCD_Internal_WriteCMD(mpr);
 	
-	// Set the lower 4 bits
-	mpr = lcd_c_disp_set_page_addr;
+	
+	mpr = lcd_c_disp_set_page_addr;							// Set the lower 4 bits
 	mpr ^= r17;							
 	LCD_Internal_WriteCMD(mpr);
 	
@@ -194,9 +196,9 @@ void LCD_Internal_ClearLn(uint8_t r17) {
 
 void LCD_Internal_WriteCMD(uint8_t mpr) {
 
-	SPDR_REG = mpr;
+	SPDR_REG = mpr; 
 	
-	PORTF &= ~(1 << PF1);
+	PORTF &= ~(1 << PF1);										// Ensure A0 is driven low
 	while (!(SPSR_REG & (1 << SPIF)));	
 }
 
