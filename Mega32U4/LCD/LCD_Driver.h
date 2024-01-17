@@ -15,14 +15,12 @@
 
 #define lcd_buffer_addr 0x0100
 
-															// LCD Commands
-
 #define lcd_c_disp_en 0b10101110							// Display ON/OFF
 #define lcd_c_disp_set_start_ln 0b01000000					// Display Start Line Set
 #define lcd_c_disp_set_page_addr 0b10110000					// Page Address Set
 #define lcd_c_disp_set_col_addr_h 0b00010000				// Column Address Set, see column address circuit for details
 #define lcd_c_disp_set_col_addr_l 0b00000000
-#define lcd_c_disp_set_invert 0b10100110					// Display Normal/Reverse
+#define lcd_c_disp_set_invert 0b10100110					// Display Normal
 #define lcd_c_disp_fill 0b10100100							// Display All Points ON/OFF, normal (OFF)
 #define lcd_c_disp_reset 0b11100010							// Resets LCD settings
 #define lcd_c_disp_set_bias 0b10100010						// LCD Bias Set, voltage bias ratio (1/6 bias, 1/33 duty)
@@ -34,35 +32,34 @@
 #define lcd_c_disp_vreg_on 0b00000111						// Voltage booster, voltage regulator, voltage follower
 #define lcd_c_disp_write 0b00000000							// Display Data Write
 
-#define SPCR_REG (*((volatile unsigned char *)(0x2D)))
+#define SPCR_REG (*((volatile unsigned char *)(0x2D)))		// Register assignments
 #define SPSR_REG (*((volatile unsigned char *)(0x2E)))
 #define SPDR_REG (*((volatile unsigned char *)(0x2F)))
 
-
-// Declarations
-void LCD_Internal_WriteLn(uint8_t* FontBitmap, uint8_t r17, uint8_t r24, uint8_t r25);
+void LCD_Internal_WriteLn(uint16_t* FontBitmap, uint8_t r17);
 void LCD_Internal_WriteCMD(uint8_t mpr);
 void LCDDelay();
+
 unsigned char BitmapFont[256][16];
 
 
 void LCDInit() {
 	uint8_t mpr;
 
-	// set MOSI, SCL, and SS as outputs
-	DDRB |= (1 << DDB2) | (1 << DDB1) | (1 << DDB0);
+	
+	DDRB |= (1 << DDB2) | (1 << DDB1) | (1 << DDB0);		// set MOSI, SCL, and SS as outputs		
 
-	// set lcd_A0 as output
-	DDRF |= (1 << DDF1);
 	
-	// enable LCD backlight control
-	DDRC |= (1 << DDC7);
+	DDRF |= (1 << DDF1);									// set lcd_A0 as output
 	
-	// set lcd_RST_N as output
-	DDRF |= (1 << DDF0);
 	
-	// pull lcd_RST_N low for 1 millisecond
-	PORTF &= ~(1 << PF0);
+	DDRC |= (1 << DDC7);									// enable LCD backlight control
+	
+	
+	DDRF |= (1 << DDF0);									// set lcd_RST_N as output
+	
+	
+	PORTF &= ~(1 << PF0);									// pull lcd_RST_N low for 1 millisecond
 	LCDDelay();
 	PORTF |= (1 << PF0);
 
@@ -72,20 +69,17 @@ void LCDInit() {
 	// MSTR: Master SPI mode
 	// CPOL: Idle CLK = 1, Falling -> Rising
 	// CPHA: Setup -> Sample data
-	
 	SPCR_REG = (1 << SPIE) | (1 << SPE) | (1 << MSTR) | (1 << CPOL) | (1 << CPHA);
 	
 	// SPSR Setup: SPI Status Register
 	// SPI2X: CLK freq. is doubled, see clock speed reference
 	// SPIF: SPI Interrupt Vector flag
-	
 	SPSR_REG = (1 << SPIF) | (1 << SPI2X);
 
-	// activate slave select
-	PORTB &= ~(1 << PB0);
+	
+	PORTB &= ~(1 << PB0);									// activate slave select
 
-	// send a string of initialization commands
-	mpr = lcd_c_disp_set_bias;
+	mpr = lcd_c_disp_set_bias;								// Initialization commands
 	LCD_Internal_WriteCMD(mpr);
 	mpr = lcd_c_disp_set_scandir;
 	LCD_Internal_WriteCMD(mpr);
@@ -100,78 +94,94 @@ void LCDInit() {
 	mpr = (lcd_c_disp_en | (1 << 0));
 	LCD_Internal_WriteCMD(mpr);
 
-	// deactivate slave select
-	PORTB |= (1 << PB0);
+	
+	PORTB |= (1 << PB0);									// deactivate slave select
+	
 }
 
 void LCDBacklightOn() {
-	// Backlight control code (enable backlight)
-	PORTC |= (1 << PC7);
+	
+	PORTC |= (1 << PC7);									// Enable backlight
+	
 }
 
 void LCDBacklightOff() {
-	// Backlight control code (disable backlight)
-	PORTC |= (1 >> PC7);
+	
+	PORTC |= (1 >> PC7);									// Disable backlight
+	
 }
 
 void LCDWrite(char* data) {
-	// Write to LCD code
+	
+	// LCDWrLn1();											// Write to LCD code
+	// LCDWrLn2();
+	
 }
 
 void LCDWrLn1(uint8_t (*FontBitmap)[16]) {
-
-
-
+	
+															// Set the destination bank in LCD RAM (TOP)
+		
+															// Point at the ASCII data
+	
+															// Call LCD_Internal_WriteLn
+														
 }
 
-void LCDWrLn2(uint8_t* FontBitmap) {
+void LCDWrLn2(uint8_t (*FontBitmap)[16]) {
 	
-	// Set the destination bank in LCD RAM (BOTTOM)
+															// Set the destination bank in LCD RAM (BOTTOM)
 	
-	// Point at the ASCII data
+															// Point at the ASCII data
 	
-	// Call LCD_Internal_WriteLn
+															// Call LCD_Internal_WriteLn	
 
 }
 
 void LCDClr() {
-	// Clear entire LCD screen code
-}
-
-void LCDClrLn1() {
-	// Clear top line of LCD code
-}
-
-void LCDClrLn2() {
-	// Clear bottom line of LCD code
-}
-
-void Bin2ASCII(uint8_t mpr, char* result) {
-	// Binary to ASCII conversion code
+	
+															// Clear entire LCD screen code
+															
 }
 
 
-// Rewrite Function using datasheet
+// *************************************************** //
+// When the MPU writes data to the display data RAM, 
+// once the data is stored in the bus holder, then it is
+// written to the display data RAM before the next data write
+// cycle. Moreover, when the MPU reads the display data RAM,
+// the first data read cycle (dummy) stores the read data in the
+// bus holder, and then the data is read from the bus holder to
+// the system bus at the next data read cycle.
+//
+// TODO:
+//  - Write data to bus holder
+//  - Write data to display RAM
+//  - Read dummy read cycle from data RAM
+//  - Read data from bus holder to system bus ?
+//  
+// NOTES:
+//  - r17 destination bank in LCD RAM
+//  - Bitmap + destination -> send data to LCD
+// *************************************************** //
 
-void LCD_Internal_WriteLn(uint8_t* FontBitmap, uint8_t r17, uint8_t r24, uint8_t r25) {
+void LCD_Internal_WriteLn(uint16_t* FontBitmap, uint8_t r17) {
 	
 	uint8_t mpr;
-	//uint8_t charLine = 16;
-	//uint8_t lowBitmap, highBitmap;
+	// uint8_t charLine = 16;								// Character per LCD line 
+	// uint8_t rowSelect = 2;								// Two rows on LCD
+	// uint8_t lowBitmap, highBitmap;
 	
-	//highBitmap = highbyte(FontBitmap << 1);
-	//lowBitmap = lowbyte(FontBitmap << 1);
-	
-	// activate slave select
-	PORTB &= ~(1 << PB0);
+	// highBitmap = highbyte(FontBitmap << 1);
+	// lowBitmap = lowbyte(FontBitmap << 1);
 	
 	
-	// Setup LCD column
-	mpr = lcd_c_disp_set_col_addr_h;
+	PORTB &= ~(1 << PB0);									// activate slave select
+	
+	mpr = lcd_c_disp_set_col_addr_h;						// Setup LCD column
 	LCD_Internal_WriteCMD(mpr);
-	mpr = lcd_c_disp_set_col_addr_l;
 	
-	// Page address
+	mpr = lcd_c_disp_set_col_addr_l;						// Page address
 	LCD_Internal_WriteCMD(mpr);
 	
 	
@@ -179,17 +189,13 @@ void LCD_Internal_WriteLn(uint8_t* FontBitmap, uint8_t r17, uint8_t r24, uint8_t
 	mpr ^= r17;							
 	LCD_Internal_WriteCMD(mpr);
 	
-	// Get character from bitmap
-	
-	
-	
-	
+															// Get character from bitmap
 	
 }
 
 void LCD_Internal_ClearLn(uint8_t r17) {
 	
-	// Internal clear LCD code
+															// Internal clear LCD code
 	
 }
 
@@ -198,19 +204,18 @@ void LCD_Internal_WriteCMD(uint8_t mpr) {
 
 	SPDR_REG = mpr; 
 	
-	PORTF &= ~(1 << PF1);										// Ensure A0 is driven low
+	PORTF &= ~(1 << PF1);									// Ensure A0 is driven low
 	while (!(SPSR_REG & (1 << SPIF)));	
 }
 
 
 void LCDDelay() {
-	_delay_ms(1);  // Wait for 1 ms
+	_delay_ms(1);											// Wait for 1 ms
 }
 
-void div10(uint8_t mpr, uint8_t* q, uint8_t* r) {
-	// Division by 10 code
-}
 
+
+// Standard Bitmap found on github, unedited
 
 unsigned char BitmapFont[256][16] = {
 
