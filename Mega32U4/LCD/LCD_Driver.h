@@ -178,24 +178,15 @@ void LCD_Internal_WriteLn(uint16_t* FontBitmap, uint8_t r17) {
 	
 	PORTB &= ~(1 << PB0);									// activate slave select
 	
-	mpr = lcd_c_disp_set_col_addr_h;						// Setup LCD column
-	LCD_Internal_WriteCMD(mpr);
+
 	
-	mpr = lcd_c_disp_set_col_addr_l;						// Page address
-	LCD_Internal_WriteCMD(mpr);
-	
-	
-	mpr = lcd_c_disp_set_page_addr;							// Set the lower 4 bits
-	mpr ^= r17;							
-	LCD_Internal_WriteCMD(mpr);
-	
-															// Get character from bitmap
+												
 	
 }
 
 void LCD_Internal_ClearLn(uint8_t r17) {
 	
-															// Internal clear LCD code
+												// Internal clear LCD code
 	
 }
 
