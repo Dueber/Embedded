@@ -36,7 +36,7 @@
 #define SPSR_REG (*((volatile unsigned char *)(0x2E)))
 #define SPDR_REG (*((volatile unsigned char *)(0x2F)))
 
-void LCD_Internal_WriteLn(uint16_t* FontBitmap, uint8_t r17);
+void LCD_WriteLn(uint16_t* FontBitmap, uint8_t r17);
 void LCD_Internal_WriteCMD(uint8_t mpr);
 void LCDDelay();
 
@@ -111,38 +111,26 @@ void LCDBacklightOff() {
 	
 }
 
-void LCDWrite(char* data) {
+// ******************************************************
+// This functions pull pin A0 low before writing to 
+// the controller. Used for initializing LCD screen by
+// sending the appropriate commands
+//
+// ******************************************************
+
+void LCD_Internal_WriteCMD(uint8_t mpr) {
+
+	SPDR_REG = mpr;
 	
-	// LCDWrLn1();											// Write to LCD code
-	// LCDWrLn2();
-	
+	PORTF &= ~(1 << PF1);									// Ensure A0 is driven low
+	while (!(SPSR_REG & (1 << SPIF)));
 }
 
-void LCDWrLn1(uint8_t (*FontBitmap)[16]) {
-	
-															// Set the destination bank in LCD RAM (TOP)
-		
-															// Point at the ASCII data
-	
-															// Call LCD_Internal_WriteLn
-														
+
+void LCDDelay() {
+	_delay_ms(1);											// Wait for 1 ms
 }
 
-void LCDWrLn2(uint8_t (*FontBitmap)[16]) {
-	
-															// Set the destination bank in LCD RAM (BOTTOM)
-	
-															// Point at the ASCII data
-	
-															// Call LCD_Internal_WriteLn	
-
-}
-
-void LCDClr() {
-	
-															// Clear entire LCD screen code
-															
-}
 
 
 // *************************************************** //
@@ -165,7 +153,7 @@ void LCDClr() {
 //  - Bitmap + destination -> send data to LCD
 // *************************************************** //
 
-void LCD_Internal_WriteLn(uint16_t* FontBitmap, uint8_t r17) {
+void LCD_WriteLn(uint16_t* FontBitmap, uint8_t r17) {
 	
 	uint8_t mpr;
 	// uint8_t charLine = 16;								// Character per LCD line 
@@ -178,31 +166,32 @@ void LCD_Internal_WriteLn(uint16_t* FontBitmap, uint8_t r17) {
 	
 	PORTB &= ~(1 << PB0);									// activate slave select
 	
-
+	mpr = lcd_c_disp_set_col_addr_h;						// Setup LCD column
+	LCD_Internal_WriteCMD(mpr);
 	
-												
+	mpr = lcd_c_disp_set_col_addr_l;						// Page address
+	LCD_Internal_WriteCMD(mpr);
 	
-}
-
-void LCD_Internal_ClearLn(uint8_t r17) {
-	
-												// Internal clear LCD code
-	
-}
-
-
-void LCD_Internal_WriteCMD(uint8_t mpr) {
-
-	SPDR_REG = mpr; 
 	
 	PORTF &= ~(1 << PF1);									// Ensure A0 is driven low
-	while (!(SPSR_REG & (1 << SPIF)));	
+	
+	
+	
+
+	
+	
+															// Get character from bitmap
+	
+}
+
+void LCDClr() {
+	
+	// Clear entire LCD screen code
+	
 }
 
 
-void LCDDelay() {
-	_delay_ms(1);											// Wait for 1 ms
-}
+
 
 
 
