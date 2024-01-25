@@ -156,8 +156,8 @@ void LCDDelay() {
 void LCD_WriteLn(uint16_t* FontBitmap, uint8_t r17) {
 	
 	uint8_t mpr;
-	// uint8_t charLine = 16;								// Character per LCD line 
-	// uint8_t rowSelect = 2;								// Two rows on LCD
+	uint8_t charLine = 16;								// Character per LCD line 
+	uint8_t rowSelect = 2;								// Two rows on LCD
 	// uint8_t lowBitmap, highBitmap;
 	
 	// highBitmap = highbyte(FontBitmap << 1);
@@ -175,12 +175,23 @@ void LCD_WriteLn(uint16_t* FontBitmap, uint8_t r17) {
 	
 	PORTF &= ~(1 << PF1);									// Ensure A0 is driven low
 	
-	
-	
+    for (uint8_t page = 0; page < rowSelect; page++) {
+	    // Set the page address
+	    mpr = lcd_c_disp_set_page_addr | ((r17 >> 4) + page);  // Set higher 4 bits of page address
+	    LCD_Internal_WriteCMD(mpr);
 
+	    for (uint8_t line = 0; line < charLine; line++) {
+		    // Get the character from the bitmap
+		    uint16_t data = pgm_read_word(FontBitmap + (page * charLine) + line);
+		    
+		    // Write the data to the LCD
+		    for (uint8_t i = 0; i < 8; i++) {
+			    mpr = lcd_c_disp_write | ((data >> (7 - i)) & 0x01);
+			    LCD_Internal_WriteCMD(mpr);
+		    }
+	    }
+    }	
 	
-	
-															// Get character from bitmap
 	
 }
 
