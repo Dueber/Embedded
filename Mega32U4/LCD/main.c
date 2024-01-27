@@ -14,6 +14,8 @@
 #include <stdio.h>
 
 #include "LCD_Driver.h"
+#include "LCD_Config.h"
+#include "LCD_Clock.h"
 
 
 //********************************************//
