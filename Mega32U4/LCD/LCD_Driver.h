@@ -105,6 +105,13 @@ void LCD_Internal_WriteCMD(uint8_t mpr) {
 	while (!(SPSR_REG & (1 << SPIF)));
 }
 
+void SPI_MasterTransmit(char cData) {
+	
+	SPDR = cData;
+	
+	PORTF &= ~(1 << PF1);									// Ensure A0 is driven low
+	while(!(SPSR & (1 << SPIF)));
+}
 
 void LCDDelay() {
 	_delay_ms(1);											// Wait for 1 ms
