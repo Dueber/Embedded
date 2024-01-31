@@ -19,27 +19,19 @@
 #define SPDR_REG (*((volatile unsigned char *)(0x2F)))
 
 
-void LCD_Internal_WriteCMD(uint8_t mpr);
-void LCDDelay();
 
-void LCDInit() {
-	uint8_t mpr;
+void LCD_INIT() {
 
-	
 	DDRB |= (1 << DDB2) | (1 << DDB1) | (1 << DDB0);		// set MOSI, SCL, and SS as outputs		
 
-	
 	DDRF |= (1 << DDF1);									// set lcd_A0 as output
 	
-	
-	DDRC |= (1 << DDC7);									// enable LCD backlight control
-	
+	DDRC |= (1 << DDC7);									// enable LCD_BACKLIGHT control
 	
 	DDRF |= (1 << DDF0);									// set lcd_RST_N as output
 	
-	
 	PORTF &= ~(1 << PF0);									// pull lcd_RST_N low for 1 millisecond
-	LCDDelay();
+	LCD_DELAY ();
 	PORTF |= (1 << PF0);
 
 	// SPCR Setup: SPI Control Register
@@ -55,67 +47,98 @@ void LCDInit() {
 	// SPIF: SPI Interrupt Vector flag
 	SPSR_REG = (1 << SPIF) | (1 << SPI2X);
 
-	
-	PORTB &= ~(1 << PB0);									// activate slave select
-
-	mpr = ST7565R_SET_V_BIAS;								// Initialization commands
-	LCD_Internal_WriteCMD(mpr);
-	mpr = ST7565R_SEG_SCAN_DIR;
-	LCD_Internal_WriteCMD(mpr);
-	mpr = ST7565R_EV_MODE_SET;
-	LCD_Internal_WriteCMD(mpr);
-	mpr = ST7565R_EV_REG_SET;
-	LCD_Internal_WriteCMD(mpr);
-	mpr = ST7565R_V_REG_RATIO;
-	LCD_Internal_WriteCMD(mpr);
-	mpr = ST7565R_V_BOOST_RATIO;
-	LCD_Internal_WriteCMD(mpr);
-	mpr = (ST7565R_DISPLAY_ENABLE | (1 << 0));
-	LCD_Internal_WriteCMD(mpr);
-
-	
-	PORTB |= (1 << PB0);									// deactivate slave select
-	
 }
 
-void LCDBacklightOn() {
+// ******************************************************
+// This function is used on LCD initialization to turn on
+// the built-in backlight for the LCD screen.
+// ******************************************************
+
+void LCD_BACKLIGHT_ON (void) {
 	
 	PORTC |= (1 << PC7);									// Enable backlight
 	
 }
 
-void LCDBacklightOff() {
+// ******************************************************
+// This function is used on LCD initialization to turn 
+// off the built-in backlight for the LCD screen.
+// ******************************************************
+
+void LCD_BACKLIGHT_OFF (void) {
 	
 	PORTC |= (1 >> PC7);									// Disable backlight
 	
 }
 
 // ******************************************************
-// This functions pull pin A0 low before writing to 
+// This functions pull pin A0 low before writing to
 // the controller. Used for initializing LCD screen by
-// sending the appropriate commands
-//
+// sending the appropriate commands.
 // ******************************************************
 
-void LCD_Internal_WriteCMD(uint8_t mpr) {
-
-	SPDR_REG = mpr;
+void LCD_BEGIN_CMD_SIGNAL(void) {
 	
-	PORTF &= ~(1 << PF1);									// Ensure A0 is driven low
-	while (!(SPSR_REG & (1 << SPIF)));
+	PORTF &= ~(1 << PF1);									// A0 is driven low
+
 }
 
-void SPI_MasterTransmit(char cData) {
+
+// ******************************************************
+// This functions pull pin A0 high before sending data to
+// the screen.
+// ******************************************************
+
+void LCD_BEGIN_TX_SIGNAL(void) {
 	
-	SPDR_REG = cData;
+	PORTF &= (1 << PF1);									// A0 is set
 	
-	PORTF &= ~(1 << PF1);									// Ensure A0 is driven low
-	while(!(SPSR_REG & (1 << SPIF)));
 }
 
-void LCDDelay() {
+
+
+void LCD_SEND_COMMAND (uint8_t data) {
+	
+	SPDR_REG = data;										// initiate transmission
+	
+	LCD_BEGIN_CMD_SIGNAL();									// Put the LCD into command mode
+
+	while (!(SPSR_REG & (1 << SPIF))) {}					// Wait for SPI to finish
+		
+}	
+	
+
+
+void LCD_SPI_WRITE (uint8_t data) {
+	
+	LCD_BEGIN_CMD_SIGNAL();
+	
+	// int rowSelect = 2;
+	
+	
+	
+	
+	
+	
+}
+
+
+
+
+
+/*	
+char SPI_SlaveReceive(void) {
+	char cData;
+	
+	return cData;
+	}
+*/
+
+void LCD_DELAY (void) {
+	
 	_delay_ms(1);											// Wait for 1 ms
-}
+	
+	}
 
 
 
@@ -139,24 +162,11 @@ void LCDDelay() {
 //  - Bitmap + destination -> send data to LCD
 // *************************************************** //
 
-void LCD_WriteLn(uint16_t* FontBitmap, uint8_t r17) {
-	// Set page address
-	LCD_Internal_WriteCMD(ST7565R_SET_PAGE_ADDR | (r17 & 0x0F)); // adjust r17 if needed
 
-	// Set column address (high nibble)
-	LCD_Internal_WriteCMD(ST7565R_COLUMN_ADDR_H);
 
-	// Set column address (low nibble)
-	LCD_Internal_WriteCMD(ST7565R_COLUMN_ADDR_L);
 
-	// Write data to display RAM
-	for (int i = 0; i < 32; i++) {
-		LCD_Internal_WriteCMD(FontBitmap[i] >> 8); // high byte
-		LCD_Internal_WriteCMD(FontBitmap[i] & 0xFF); // low byte
-	}
-}
 
-void LCDClr() {
+void LCD_CLEAR_SCREEN (void) {
 	
 	// Clear entire LCD screen code
 	
