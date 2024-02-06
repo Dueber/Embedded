@@ -12,7 +12,9 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/pgmspace.h>
+
 #include "LCD_Config.h"
+
 
 #define SPCR_REG (*((volatile unsigned char *)(0x2D)))		// Register assignments
 #define SPSR_REG (*((volatile unsigned char *)(0x2E)))
@@ -46,19 +48,22 @@ void LCD_INIT() {
 	// SPI2X: CLK freq. is doubled, see clock speed reference
 	// SPIF: SPI Interrupt Vector flag
 	SPSR_REG = (1 << SPIF) | (1 << SPI2X);
+	
+	LCD_BACKLIGHT_ON();
 
 }
 
-// ******************************************************
+// ********************************************************
 // This function is used on LCD initialization to turn on
 // the built-in backlight for the LCD screen.
-// ******************************************************
+// ********************************************************
 
 void LCD_BACKLIGHT_ON (void) {
 	
-	PORTC |= (1 << PC7);									// Enable backlight
+	PORTC |= (1 << PC7);				// Enable backlight
 	
 }
+
 
 // ******************************************************
 // This function is used on LCD initialization to turn 
@@ -67,7 +72,53 @@ void LCD_BACKLIGHT_ON (void) {
 
 void LCD_BACKLIGHT_OFF (void) {
 	
-	PORTC |= (1 >> PC7);									// Disable backlight
+	PORTC |= (1 >> PC7);				// Disable backlight
+	
+}
+
+
+// ******************************************************
+// Page address of the display data RAM is specified
+// through the Page Address Set Command.  This command 
+// specifies the page address corresponding to the low 
+// address when the MPU accesses the display data RAM
+// ******************************************************
+
+void LCD_SET_PAGE_ADDR (void) {
+	
+	LCD_SEND_COMMAND(LCD_PAGE_ADDR_SET);
+	
+}
+
+// ******************************************************
+// The display data RAM column address is specified by 
+// the Column Address Set command. The specified column
+// address is incremented (+1) with each display data
+// read/write command.
+// ******************************************************
+
+void LCD_SET_COLUMN_UPPER (void) {
+	
+	LCD_SEND_COMMAND(LCD_CLMN_ADDR_SET_UPPER);
+	
+}
+
+void LCD_SET_COLUMN_LOWER (void) {
+	
+	LCD_SEND_COMMAND(LCD_CLMN_ADDR_SET_LOWER);
+	
+}
+
+
+// ******************************************************
+// The line address circuit specifies the line address
+// relating to the COM output when the contents of
+// the display data RAM are displayed.
+// ******************************************************
+
+void LCD_SET_LINE_ADDR (void) {
+	
+	LCD_SEND_COMMAND(LCD_LINE_ADDR_SET);
 	
 }
 
@@ -109,30 +160,10 @@ void LCD_SEND_COMMAND (uint8_t data) {
 	
 
 
-void LCD_SPI_WRITE (uint8_t data) {
-	
-	LCD_BEGIN_CMD_SIGNAL();
-	
-	// int rowSelect = 2;
-	
-	
-	
-	
-	
-	
-}
 
 
 
 
-
-/*	
-char SPI_SlaveReceive(void) {
-	char cData;
-	
-	return cData;
-	}
-*/
 
 void LCD_DELAY (void) {
 	
@@ -163,14 +194,6 @@ void LCD_DELAY (void) {
 // *************************************************** //
 
 
-
-
-
-void LCD_CLEAR_SCREEN (void) {
-	
-	// Clear entire LCD screen code
-	
-}
 
 
 #endif /* LCD_DRIVER_H_ */
